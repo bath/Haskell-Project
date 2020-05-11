@@ -15,7 +15,7 @@ background = black
 
 drawing :: Picture
 drawing = pictures [ball, walls,
-                    mkPaddle green 120 (-20)]
+                    mkPaddle green (280) 0 90]
   where
     --  The pong ball.
     ball = translate (-10) 40 $ color ballColor $ circleSolid 10
@@ -33,10 +33,10 @@ drawing = pictures [ball, walls,
     walls = pictures [wall 0 290 0 790, wall 0 390 90 590, wall 0 (-390) 90 590]
 
     --  Make a paddle of a given border and vertical offset.
-    mkPaddle :: Color -> Float -> Float -> Picture
-    mkPaddle col x y = pictures
-      [ translate x y $ color col $ rectangleSolid 26 86
-      , translate x y $ color paddleColor $ rectangleSolid 20 80
+    mkPaddle :: Color -> Float -> Float -> Float -> Picture
+    mkPaddle col x y rot = pictures
+      [ rotate rot $ translate x y $ color col $ rectangleSolid 26 106
+      , rotate rot $ translate x y $ color paddleColor $ rectangleSolid 20 100
       ]
 
     paddleColor = light (light white)
