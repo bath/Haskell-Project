@@ -27,3 +27,4 @@ cabal.project.local~
 .vs
 
 BouncingBetty.hs
+BouncingBetty

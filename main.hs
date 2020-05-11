@@ -3,9 +3,9 @@ module Main(main) where
 import Graphics.Gloss
 
 width, height, offset :: Int
-width = 800
-height = 600
-offset = 600
+width = 800 -- actual window demension
+height = 600 -- actual window demension
+offset = 100 -- where does the window populate onto the computer screen
 
 window :: Display
 window = InWindow "Bouncing Betty" (width, height) (offset, offset)
@@ -15,23 +15,22 @@ background = black
 
 drawing :: Picture
 drawing = pictures [ball, walls,
-                    mkPaddle rose 120 (-20),
-                    mkPaddle orange (-120) 40]
+                    mkPaddle green 120 (-20)]
   where
     --  The pong ball.
     ball = translate (-10) 40 $ color ballColor $ circleSolid 10
     ballColor = dark red
 
-    --  The bottom top side walls.
-    wall :: Float -> Float -> Float -> Picture
-    wall x y rot =
+    --  Top and side walls.
+    wall :: Float -> Float -> Float -> Float -> Picture
+    wall x y rot length =
       rotate rot $
         translate x y $
           color wallColor $
-            rectangleSolid 310 10
+            rectangleSolid length 10
 
     wallColor = greyN 0.5
-    walls = pictures [wall 0 150 0, wall 0 (-150) 0, wall 0 150 90 ]
+    walls = pictures [wall 0 290 0 790, wall 0 390 90 590, wall 0 (-390) 90 590]
 
     --  Make a paddle of a given border and vertical offset.
     mkPaddle :: Color -> Float -> Float -> Picture
@@ -40,7 +39,7 @@ drawing = pictures [ball, walls,
       , translate x y $ color paddleColor $ rectangleSolid 20 80
       ]
 
-    paddleColor = light (light blue)
+    paddleColor = light (light white)
 
 main :: IO ()
 main = display window background drawing 
