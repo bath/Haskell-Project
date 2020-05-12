@@ -1,15 +1,15 @@
 -- TODO: Disco / rave mode
 -- TODO: Boomer mode
 -- TODO: Select ball type
--- TODO: make width, height, offset a float ??
+-- TODO: make width, height & offset a float (?)
 -- TODO: add pause / unpause
--- TODO: fix boundaries they're broken :/
-  -- y vol works and is detected but i think the init state might be fighting the update states?
-
--- TODO: x velocity doesn't work
 
 -- TODO: multiply the ball velocity upon wall / paddle collision
 -- TODO: change direction of ball upon wall / paddle collision (?)
+
+-- TODO: limit ball velocity (?)
+
+-- TODO: alternate ball color ?
 
 module Main(main) where
 
@@ -47,17 +47,18 @@ initState = Game {
   player = 0
 }
 
+type Quad = (Float,Float,Float,Float)
+
 -- take the PongGame and create a picture(static image) with it
 -- this function is to be used constantly to refresh the current game, ball, and player's pad
 -- ??? why do we take player current_game instead of current_game player ???
 render :: PongGame -> Picture
-render current_game = pictures [ball, walls, mkPaddle green 280 (player current_game) 90]
+render current_game = pictures [ball, walls, mkPaddle white 280 (player current_game) 90]
   where
     -- ball props
-    ball =  uncurry translate (ballLocation current_game) (color red (circleSolid 10))
+    ball =  uncurry translate (ballLocation current_game) (color $ (myColor 214 40 40 40) $ circleSolid 10)
     -- ball = uncurry translate (ballLocation current_game) $ color ballColor $ circleSolid 10
     -- translate float(?) float(?) picture(circleSolid 10)
-    ballColor = dark red
 
     --  Top and side walls.
     wall :: Float -> Float -> Float -> Float -> Picture
@@ -67,17 +68,18 @@ render current_game = pictures [ball, walls, mkPaddle green 280 (player current_
           color wallColor $
             rectangleSolid length 10
 
-    wallColor = greyN 0.5
+    myColor :: Quad -> Color
+    myColor = makeColor8 x y z a
+
+    wallColor = white
     walls = pictures [wall 0 290 0 790, wall 0 390 90 590, wall 0 (-390) 90 590]
 
     --  Make a paddle of a given border and vertical offset.
     mkPaddle :: Color -> Float -> Float -> Float -> Picture
     mkPaddle col x y rot = pictures
       [ rotate rot $ translate x y $ color col $ rectangleSolid 26 106,
-        rotate rot $ translate x y $ color paddleColor $ rectangleSolid 20 100
+        rotate rot $ translate x y $ color col $ rectangleSolid 20 100
       ]
-
-    paddleColor = light (light white)
 
 moveBall :: Float -> PongGame -> PongGame
 -- executes where before we return the new ball location coords
@@ -94,10 +96,26 @@ main = play window background fps initState render handleKeys update
 
 -- update the game
 update :: Float -> PongGame -> PongGame
-update timePassed = checkPaddleCollision . checkWallCollision . moveBall timePassed
+update timePassed final_game =
+  if (outOfBounds final_game')
+    then do
+      stopBall final_game'
+    else
+      final_game'
+
+  where final_game' = checkPaddleCollision . checkWallCollision . moveBall timePassed $ final_game
+
+outOfBounds :: PongGame -> Bool
+outOfBounds current_game = belowPaddle
+  where
+    (_, yPos) = ballLocation current_game
+    belowPaddle = yPos <= -300
+
+stopBall :: PongGame -> PongGame
+stopBall current_game = current_game { ballVelocity = (0, 0) }
 
 handleKeys :: Event -> PongGame -> PongGame
-handleKeys (EventKey (Char 's') _ _ _) current_game = current_game { ballLocation = (0,0) }
+handleKeys (EventKey (Char 'r') _ _ _) current_game = current_game { ballLocation = (0,0) }
 handleKeys (EventKey (SpecialKey KeyLeft) _ _ _) current_game =  current_game {player = player current_game - 15}
 handleKeys (EventKey (SpecialKey KeyRight) _ _ _) current_game = current_game {player = player current_game + 15}
 handleKeys _ current_game = current_game
@@ -130,12 +148,12 @@ checkWallCollision current_game = current_game { ballVelocity = (xVol', yVol')}
 
     xVol' = if widthCollision (ballLocation current_game) radius
             then
-              -xVol
+              -xVol*1.05
             else
               xVol
     yVol' = if heightCollision (ballLocation current_game) radius
             then
-              -yVol
+              -yVol*1.05
             else
               yVol
 
@@ -156,7 +174,7 @@ checkPaddleCollision current_game = current_game {ballVelocity = (xVol, yVol')}
 
     yVol' = if paddleCollision (ballLocation current_game) radius current_game
             then
-              -yVol
+              -yVol*1.05
             else
               yVol
 
