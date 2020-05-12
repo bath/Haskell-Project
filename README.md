@@ -4,11 +4,14 @@
 1. Install Haskell https://www.haskell.org/downloads/
 2. Install all require dependencies
 3. To Compile
-
 ```sh
 ghc main.hs
+```
+4. To run 
+```sh
 ./main
 ```
+
 ## License 
 Miller Bath & Devin Suttles
 
