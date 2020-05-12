@@ -1,6 +1,12 @@
+-- TODO: Disco / rave mode
+-- TODO: Boomer mode
+-- TODO: Select ball type
+-- TODO: make width, height, offset a float ??
+
 module Main(main) where
 
 import Graphics.Gloss
+import Graphics.Gloss.Data.ViewPort
 
 width, height, offset :: Int
 width = 800 -- actual window demension
@@ -12,6 +18,9 @@ window = InWindow "Bouncing Betty" (width, height) (offset, offset)
 
 background :: Color -- background properties
 background = black
+
+fps :: Int
+fps = 60
 
 drawing :: Picture -- create the images for the game
 drawing = pictures [ball, walls,
@@ -53,7 +62,7 @@ data PongGame = Game {
 initState :: PongGame
 initState = Game {
   ballLocation = (0,0),
-  ballVelocity = (-1, -1),
+  ballVelocity = (-50, -50),
   player = 40
 }
 
@@ -88,9 +97,7 @@ render next_game = pictures [ball, walls, mkPaddle green 280 (player next_game) 
     paddleColor = light (light white)
 
 moveBall :: Float -> PongGame -> PongGame
-position
-
--- execute our where before we return the new ball location coords
+-- executes where before we return the new ball location coords
 moveBall timePassed current_game = current_game { ballLocation = (x',y') }
   where
     (x, y) = ballLocation current_game
@@ -99,11 +106,50 @@ moveBall timePassed current_game = current_game { ballLocation = (x',y') }
     y' = y + yVol * timePassed
 
 
-
-
-animate :: Display -> Color -> (Float -> Picture) -> IO()
-animate = 
-
-
 main :: IO ()
-main = display window background drawing 
+main = simulate window background fps initState render update
+
+-- update the game
+update :: ViewPort -> Float -> PongGame -> PongGame
+update _ = moveBall
+
+
+-- ~~ collision detecting ~~
+
+type Radius = Float
+type Position = (Float, Float)
+
+heightCollision :: Position -> Radius -> Bool
+heightCollision (_, y) radius = tc
+  where
+    tc = y + radius >= fromIntegral height
+
+widthCollision :: Position -> Radius -> Bool
+widthCollision (x, _) radius = leftCollision || rightCollision
+  where
+    leftCollision = x - radius >= -fromIntegral width
+    rightCollision = x + radius >= fromIntegral width 
+
+wallBounce :: PongGame -> PongGame
+-- we already know where the walls are placed ... 
+-- find out if ball hits the walls and if collision detected so adjust ball trajectory
+wallBounce current_game = current_game { ballVelocity = (xVol', yVol')}
+  where
+    radius = 10
+    (xVol, yVol) = ballVelocity current_game
+
+    xVol' = if widthCollision (ballLocation current_game) radius
+            then
+              -xVol
+            else
+              xVol
+    yVol' = if heightCollision (ballLocation current_game) radius
+            then
+              -yVol
+            else
+              yVol
+
+
+-- paddleBounce :: PongGame -> PongGame
+-- take in a current PG and output the new PG
+-- find out where the ball is, where the paddle is, adjust ball location upon collision
