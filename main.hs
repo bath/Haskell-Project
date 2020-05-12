@@ -2,6 +2,11 @@
 -- TODO: Boomer mode
 -- TODO: Select ball type
 -- TODO: make width, height, offset a float ??
+-- TODO: add pause / unpause
+-- TODO: fix boundaries they're broken :/
+  -- y vol works and is detected but i think the init state might be fighting the update states?
+
+-- TODO: x velocity doesn't work
 
 module Main(main) where
 
@@ -35,7 +40,7 @@ data PongGame = Game {
 initState :: PongGame
 initState = Game {
   ballLocation = (0,0),
-  ballVelocity = (-50, -50),
+  ballVelocity = (0, 70),
   player = 0
 }
 
@@ -83,15 +88,14 @@ main :: IO ()
 main = play window background fps initState render handleKeys update
 
 -- update the game
-update :: ViewPort -> Float -> PongGame -> PongGame
-update _ timePassed = checkWallCollision . moveBall timePassed
+update :: Float -> PongGame -> PongGame
+update timePassed = checkWallCollision . moveBall timePassed
 
 handleKeys :: Event -> PongGame -> PongGame
-handleKeys (EventKey (Char 's') _ _ _) current_game = game { ballLocation = (0,0) }
-
-handleKeys _ current_game = game
-
-
+handleKeys (EventKey (Char 's') _ _ _) current_game = current_game { ballLocation = (0,0) }
+handleKeys (EventKey (SpecialKey KeyLeft) _ _ _) current_game =  current_game {player = player current_game - 10}
+handleKeys (EventKey (SpecialKey KeyRight) _ _ _) current_game = current_game {player = player current_game + 10}
+handleKeys _ current_game = current_game
 
 -- ~~ collision detection ~~
 
@@ -99,15 +103,17 @@ type Radius = Float
 type Position = (Float, Float)
 
 heightCollision :: Position -> Radius -> Bool
-heightCollision (_, y) radius = tc
+heightCollision (_, y) radius = topCollision
   where
-    tc = y + radius >= fromIntegral height
+    topCollision = y >= 100
 
 widthCollision :: Position -> Radius -> Bool
 widthCollision (x, _) radius = leftCollision || rightCollision
   where
-    leftCollision = x - radius >= -fromIntegral width
-    rightCollision = x + radius >= fromIntegral width 
+    leftCollision = x - radius >= -fromIntegral height
+    rightCollision = x + radius >= fromIntegral height 
+    -- leftCollision = x >= 5
+    -- rightCollision = x <= 5
 
 checkWallCollision :: PongGame -> PongGame
 -- we already know where the walls are placed ... 
@@ -121,19 +127,21 @@ checkWallCollision current_game = current_game { ballVelocity = (xVol', yVol')}
             then
               -xVol
             else
-              xVol
+              10
     yVol' = if heightCollision (ballLocation current_game) radius
             then
               -yVol
             else
-              yVol
+              10
+    -- yVol' = 500
 
 paddleCollision :: Position -> Radius -> PongGame -> Bool
 paddleCollision (x, y) radius current_game = collision
   where
     radius = 10
     currX = player current_game
-    collision = (106 <= y + radius) && (abs (x - currX) < 53)
+    collision = (106 <= y + radius) 
+    -- && (abs (x - currX) < 53)
     -- not sure if abs is correct
 
 paddleBounce :: PongGame -> PongGame
@@ -143,9 +151,12 @@ paddleBounce current_game = current_game {ballVelocity = (xVol, yVol')}
   where
     radius = 10
     (xVol, yVol) = ballVelocity current_game
+    yVol' = -yVol
+    -- yVol' = if paddleCollision (ballLocation current_game) radius current_game
+    --         then
+    --           -yVol
+    --         else
+    --           yVol
 
-    yVol' = if paddleCollision (ballLocation current_game) radius current_game
-            then
-              -yVol
-            else
-              yVol
+shout :: IO ()
+shout = putStrLn "hello"
