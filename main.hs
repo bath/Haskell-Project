@@ -25,8 +25,7 @@ offset = 100 -- where does the window populate onto the computer screen
 window :: Display -- window properties
 window = InWindow "Bouncing Betty" (width, height) (offset, offset)
 
-background :: Color -- background properties
-background = black
+
 
 fps :: Int
 fps = 60
@@ -49,15 +48,30 @@ initState = Game {
 
 type Quad = (Float,Float,Float,Float)
 
+paddleColor :: Color
+paddleColor = makeColorI 247 127 0 255
+
+wallColor :: Color
+wallColor = makeColorI 214 40 40 255
+
+ballColor :: Color
+ballColor = makeColorI 234 226 183 255
+
+backColor :: Color
+backColor = makeColorI 0 48 73 200
+
+background :: Color -- background properties
+background = backColor
+
 -- take the PongGame and create a picture(static image) with it
 -- this function is to be used constantly to refresh the current game, ball, and player's pad
 -- ??? why do we take player current_game instead of current_game player ???
 render :: PongGame -> Picture
-render current_game = pictures [ball, walls, mkPaddle white 280 (player current_game) 90]
+render current_game = pictures [ball, walls, mkPaddle paddleColor 280 (player current_game) 90]
   where
     -- ball props
-    ball =  uncurry translate (ballLocation current_game) (color $ (myColor 214 40 40 40) $ circleSolid 10)
-    -- ball = uncurry translate (ballLocation current_game) $ color ballColor $ circleSolid 10
+    -- ball =  uncurry translate (ballLocation current_game) (color . (myColor 214 40 40 40) . circleSolid 10)
+    ball = uncurry translate (ballLocation current_game) $ color ballColor $ circleSolid 10
     -- translate float(?) float(?) picture(circleSolid 10)
 
     --  Top and side walls.
@@ -68,10 +82,6 @@ render current_game = pictures [ball, walls, mkPaddle white 280 (player current_
           color wallColor $
             rectangleSolid length 10
 
-    myColor :: Quad -> Color
-    myColor = makeColor8 x y z a
-
-    wallColor = white
     walls = pictures [wall 0 290 0 790, wall 0 390 90 590, wall 0 (-390) 90 590]
 
     --  Make a paddle of a given border and vertical offset.
@@ -116,8 +126,8 @@ stopBall current_game = current_game { ballVelocity = (0, 0) }
 
 handleKeys :: Event -> PongGame -> PongGame
 handleKeys (EventKey (Char 'r') _ _ _) current_game = current_game { ballLocation = (0,0) }
-handleKeys (EventKey (SpecialKey KeyLeft) _ _ _) current_game =  current_game {player = player current_game - 15}
-handleKeys (EventKey (SpecialKey KeyRight) _ _ _) current_game = current_game {player = player current_game + 15}
+handleKeys (EventKey (SpecialKey KeyLeft) _ _ _) current_game =  current_game {player = player current_game - 18}
+handleKeys (EventKey (SpecialKey KeyRight) _ _ _) current_game = current_game {player = player current_game + 18}
 handleKeys _ current_game = current_game
 
 -- ~~ collision detection ~~
