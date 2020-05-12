@@ -40,7 +40,7 @@ data PongGame = Game {
 initState :: PongGame
 initState = Game {
   ballLocation = (0,0),
-  ballVelocity = (0, 70),
+  ballVelocity = (70, 70),
   player = 0
 }
 
@@ -51,7 +51,9 @@ render :: PongGame -> Picture
 render current_game = pictures [ball, walls, mkPaddle green 280 (player current_game) 90]
   where
     -- ball props
-    ball = uncurry translate (ballLocation current_game) $ color ballColor $ circleSolid 10
+    ball =  uncurry translate (ballLocation current_game) (color red (circleSolid 10))
+    -- ball = uncurry translate (ballLocation current_game) $ color ballColor $ circleSolid 10
+    -- translate float(?) float(?) picture(circleSolid 10)
     ballColor = dark red
 
     --  Top and side walls.
@@ -68,8 +70,8 @@ render current_game = pictures [ball, walls, mkPaddle green 280 (player current_
     --  Make a paddle of a given border and vertical offset.
     mkPaddle :: Color -> Float -> Float -> Float -> Picture
     mkPaddle col x y rot = pictures
-      [ rotate rot $ translate x y $ color col $ rectangleSolid 26 106
-      , rotate rot $ translate x y $ color paddleColor $ rectangleSolid 20 100
+      [ rotate rot $ translate x y $ color col $ rectangleSolid 26 106,
+        rotate rot $ translate x y $ color paddleColor $ rectangleSolid 20 100
       ]
 
     paddleColor = light (light white)
@@ -123,16 +125,19 @@ checkWallCollision current_game = current_game { ballVelocity = (xVol', yVol')}
     radius = 10
     (xVol, yVol) = ballVelocity current_game
 
-    xVol' = if widthCollision (ballLocation current_game) radius
-            then
-              -xVol
-            else
-              10
-    yVol' = if heightCollision (ballLocation current_game) radius
-            then
-              -yVol
-            else
-              10
+    xVol' = xVol
+    yVol' = yVol
+
+    -- xVol' = if widthCollision (ballLocation current_game) radius
+    --         then
+    --           -xVol
+    --         else
+    --           10
+    -- yVol' = if heightCollision (ballLocation current_game) radius
+    --         then
+    --           -yVol
+    --         else
+    --           10
     -- yVol' = 500
 
 paddleCollision :: Position -> Radius -> PongGame -> Bool
@@ -151,7 +156,9 @@ paddleBounce current_game = current_game {ballVelocity = (xVol, yVol')}
   where
     radius = 10
     (xVol, yVol) = ballVelocity current_game
-    yVol' = -yVol
+    -- xVol' = xVol
+    yVol' = yVol
+    -- yVol' = -yVol
     -- yVol' = if paddleCollision (ballLocation current_game) radius current_game
     --         then
     --           -yVol
