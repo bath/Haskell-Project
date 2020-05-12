@@ -8,6 +8,9 @@
 
 -- TODO: x velocity doesn't work
 
+-- TODO: multiply the ball velocity upon wall / paddle collision
+-- TODO: change direction of ball upon wall / paddle collision (?)
+
 module Main(main) where
 
 import Graphics.Gloss
@@ -40,7 +43,7 @@ data PongGame = Game {
 initState :: PongGame
 initState = Game {
   ballLocation = (0,0),
-  ballVelocity = (50, 50),
+  ballVelocity = (150, -300),
   player = 0
 }
 
@@ -91,7 +94,7 @@ main = play window background fps initState render handleKeys update
 
 -- update the game
 update :: Float -> PongGame -> PongGame
-update timePassed = checkWallCollision . moveBall timePassed
+update timePassed = checkPaddleCollision . checkWallCollision . moveBall timePassed
 
 handleKeys :: Event -> PongGame -> PongGame
 handleKeys (EventKey (Char 's') _ _ _) current_game = current_game { ballLocation = (0,0) }
@@ -114,8 +117,8 @@ widthCollision (x, _) radius = leftCollision || rightCollision
   where
     -- leftCollision = x - radius >= -fromIntegral height
     -- rightCollision = x + radius >= fromIntegral height 
-    leftCollision = x + radius >= 400 - 15
-    rightCollision = x + radius <= (-400 + 15)
+    leftCollision = x - radius <= -400 + 15
+    rightCollision = x + radius >= 400 - 15
 
 checkWallCollision :: PongGame -> PongGame
 -- we already know where the walls are placed ... 
@@ -132,7 +135,7 @@ checkWallCollision current_game = current_game { ballVelocity = (xVol', yVol')}
               xVol
     yVol' = if heightCollision (ballLocation current_game) radius
             then
-              (-100)
+              -yVol
             else
               yVol
 
@@ -141,25 +144,21 @@ paddleCollision (x, y) radius current_game = collision
   where
     radius = 10
     currX = player current_game
-    collision = (106 <= y + radius) 
-    -- && (abs (x - currX) < 53)
-    -- not sure if abs is correct
+    collision = ((y - radius <= (-300 + 29) && (y - radius >= -300))) && ((abs(x - currX) < 53))
 
-paddleBounce :: PongGame -> PongGame
+checkPaddleCollision :: PongGame -> PongGame
 -- take in a current PG and output the new PG
 -- find out where the ball is, where the paddle is, adjust ball location upon collision
-paddleBounce current_game = current_game {ballVelocity = (xVol, yVol')}
+checkPaddleCollision current_game = current_game {ballVelocity = (xVol, yVol')}
   where
     radius = 10
     (xVol, yVol) = ballVelocity current_game
-    -- xVol' = xVol
-    yVol' = yVol
-    -- yVol' = -yVol
-    -- yVol' = if paddleCollision (ballLocation current_game) radius current_game
-    --         then
-    --           -yVol
-    --         else
-    --           yVol
+
+    yVol' = if paddleCollision (ballLocation current_game) radius current_game
+            then
+              -yVol
+            else
+              yVol
 
 shout :: IO ()
 shout = putStrLn "hello"
