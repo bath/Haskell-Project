@@ -7,6 +7,7 @@ module Main(main) where
 
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort
+import Graphics.Gloss.Interface.Pure.Game
 
 width, height, offset :: Int
 width = 800 -- actual window demension
@@ -22,34 +23,6 @@ background = black
 fps :: Int
 fps = 60
 
-drawing :: Picture -- create the images for the game
-drawing = pictures [ball, walls,
-                    mkPaddle green (280) 0 90]
-  where
-    --  The pong ball.
-    ball = translate (-10) 40 $ color ballColor $ circleSolid 10
-    ballColor = dark red
-
-    --  Top and side walls.
-    wall :: Float -> Float -> Float -> Float -> Picture
-    wall x y rot length =
-      rotate rot $
-        translate x y $
-          color wallColor $
-            rectangleSolid length 10
-
-    wallColor = greyN 0.5
-    walls = pictures [wall 0 290 0 790, wall 0 390 90 590, wall 0 (-390) 90 590]
-
-    --  Make a paddle of a given border and vertical offset.
-    mkPaddle :: Color -> Float -> Float -> Float -> Picture
-    mkPaddle col x y rot = pictures
-      [ rotate rot $ translate x y $ color col $ rectangleSolid 26 106
-      , rotate rot $ translate x y $ color paddleColor $ rectangleSolid 20 100
-      ]
-
-    paddleColor = light (light white)
-
 -- current game value
 -- use game to type check the values passed into PongGame
 data PongGame = Game {
@@ -63,17 +36,17 @@ initState :: PongGame
 initState = Game {
   ballLocation = (0,0),
   ballVelocity = (-50, -50),
-  player = 40
+  player = 0
 }
 
 -- take the PongGame and create a picture(static image) with it
 -- this function is to be used constantly to refresh the current game, ball, and player's pad
--- ??? why do we take player next_game instead of next_game player ???
+-- ??? why do we take player current_game instead of current_game player ???
 render :: PongGame -> Picture
-render next_game = pictures [ball, walls, mkPaddle green 280 (player next_game) 90]
+render current_game = pictures [ball, walls, mkPaddle green 280 (player current_game) 90]
   where
     -- ball props
-    ball = uncurry translate (ballLocation next_game) $ color ballColor $ circleSolid 10
+    ball = uncurry translate (ballLocation current_game) $ color ballColor $ circleSolid 10
     ballColor = dark red
 
     --  Top and side walls.
@@ -107,14 +80,20 @@ moveBall timePassed current_game = current_game { ballLocation = (x',y') }
 
 
 main :: IO ()
-main = simulate window background fps initState render update
+main = play window background fps initState render handleKeys update
 
 -- update the game
 update :: ViewPort -> Float -> PongGame -> PongGame
-update _ = moveBall
+update _ timePassed = checkWallCollision . moveBall timePassed
+
+handleKeys :: Event -> PongGame -> PongGame
+handleKeys (EventKey (Char 's') _ _ _) current_game = game { ballLocation = (0,0) }
+
+handleKeys _ current_game = game
 
 
--- ~~ collision detecting ~~
+
+-- ~~ collision detection ~~
 
 type Radius = Float
 type Position = (Float, Float)
@@ -130,10 +109,10 @@ widthCollision (x, _) radius = leftCollision || rightCollision
     leftCollision = x - radius >= -fromIntegral width
     rightCollision = x + radius >= fromIntegral width 
 
-wallBounce :: PongGame -> PongGame
+checkWallCollision :: PongGame -> PongGame
 -- we already know where the walls are placed ... 
 -- find out if ball hits the walls and if collision detected so adjust ball trajectory
-wallBounce current_game = current_game { ballVelocity = (xVol', yVol')}
+checkWallCollision current_game = current_game { ballVelocity = (xVol', yVol')}
   where
     radius = 10
     (xVol, yVol) = ballVelocity current_game
@@ -149,7 +128,24 @@ wallBounce current_game = current_game { ballVelocity = (xVol', yVol')}
             else
               yVol
 
+paddleCollision :: Position -> Radius -> PongGame -> Bool
+paddleCollision (x, y) radius current_game = collision
+  where
+    radius = 10
+    currX = player current_game
+    collision = (106 <= y + radius) && (abs (x - currX) < 53)
+    -- not sure if abs is correct
 
--- paddleBounce :: PongGame -> PongGame
+paddleBounce :: PongGame -> PongGame
 -- take in a current PG and output the new PG
 -- find out where the ball is, where the paddle is, adjust ball location upon collision
+paddleBounce current_game = current_game {ballVelocity = (xVol, yVol')}
+  where
+    radius = 10
+    (xVol, yVol) = ballVelocity current_game
+
+    yVol' = if paddleCollision (ballLocation current_game) radius current_game
+            then
+              -yVol
+            else
+              yVol
