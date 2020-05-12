@@ -16,6 +16,7 @@ module Main(main) where
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game
+import System.Random
 
 width, height, offset :: Int
 width = 800 -- actual window demension
@@ -35,16 +36,35 @@ fps = 60
 data PongGame = Game {
   ballLocation :: (Float,Float),
   ballVelocity :: (Float, Float),
-  player :: Float
+  player :: Float,
+  bounces :: Integer
 } deriving Show -- so we can read from this structure
 
 -- initial game values
-initState :: PongGame
-initState = Game {
-  ballLocation = (0,0),
-  ballVelocity = (150, -300),
-  player = 0
+randomState :: StdGen -> PongGame
+randomState g = Game {
+  ballLocation = (a, b),
+  ballVelocity = (c', d'),
+  player = 0,
+  bounces = 0
 }
+  where
+    a:b:c:d:_ = randomRs (-50,50) g
+    c' = c * 12
+    d' = d * 12
+
+-- randomState :: StdGen -> PongGame
+-- randomState gen = Game
+--   { ballLocation = (a, b)
+--   , ballVelocity = (c', d')
+--   , player = 0
+--   , bounces = 0
+--   }
+--   where
+--     a:b:c:d:_ = randomRs (-50, 50) gen
+--     c' = c * mag
+--     d' = d * mag
+--     mag = 200 / sqrt (c^2 + d^2)
 
 type Quad = (Float,Float,Float,Float)
 
@@ -63,11 +83,14 @@ backColor = makeColorI 0 48 73 200
 background :: Color -- background properties
 background = backColor
 
+toString :: Integer -> String
+toString str = show str
+
 -- take the PongGame and create a picture(static image) with it
 -- this function is to be used constantly to refresh the current game, ball, and player's pad
 -- ??? why do we take player current_game instead of current_game player ???
 render :: PongGame -> Picture
-render current_game = pictures [ball, walls, mkPaddle paddleColor 280 (player current_game) 90]
+render current_game = pictures [ball, walls, mkPaddle paddleColor 280 (player current_game) 90, text (toString (bounces current_game))]
   where
     -- ball props
     -- ball =  uncurry translate (ballLocation current_game) (color . (myColor 214 40 40 40) . circleSolid 10)
@@ -102,7 +125,10 @@ moveBall timePassed current_game = current_game { ballLocation = (x',y') }
 
 
 main :: IO ()
-main = play window background fps initState render handleKeys update
+main = do
+  g <- getStdGen
+  let initState = randomState g
+  play window background fps initState render handleKeys update
 
 -- update the game
 update :: Float -> PongGame -> PongGame
@@ -125,9 +151,9 @@ stopBall :: PongGame -> PongGame
 stopBall current_game = current_game { ballVelocity = (0, 0) }
 
 handleKeys :: Event -> PongGame -> PongGame
-handleKeys (EventKey (Char 'r') _ _ _) current_game = current_game { ballLocation = (0,0) }
-handleKeys (EventKey (SpecialKey KeyLeft) _ _ _) current_game =  current_game {player = player current_game - 18}
-handleKeys (EventKey (SpecialKey KeyRight) _ _ _) current_game = current_game {player = player current_game + 18}
+handleKeys (EventKey (Char 'r') _ _ _) current_game = current_game { ballLocation = (0,0)}
+handleKeys (EventKey (SpecialKey KeyLeft) _ _ _) current_game =  current_game {player = player current_game - 20}
+handleKeys (EventKey (SpecialKey KeyRight) _ _ _) current_game = current_game {player = player current_game + 20}
 handleKeys _ current_game = current_game
 
 -- ~~ collision detection ~~
@@ -151,21 +177,27 @@ widthCollision (x, _) radius = leftCollision || rightCollision
 checkWallCollision :: PongGame -> PongGame
 -- we already know where the walls are placed ... 
 -- find out if ball hits the walls and if collision detected so adjust ball trajectory
-checkWallCollision current_game = current_game { ballVelocity = (xVol', yVol')}
+checkWallCollision current_game = current_game { ballVelocity = (xVol', yVol'), bounces = new_bounces}
   where
     radius = 10
     (xVol, yVol) = ballVelocity current_game
+    cur_bounce = bounces current_game
 
     xVol' = if widthCollision (ballLocation current_game) radius
             then
-              -xVol*1.05
+              -xVol*1.03
             else
               xVol
     yVol' = if heightCollision (ballLocation current_game) radius
             then
-              -yVol*1.05
+              -yVol*1.03
             else
               yVol
+    new_bounces = if (widthCollision (ballLocation current_game) radius) || (heightCollision (ballLocation current_game) radius)
+            then
+              cur_bounce + 1
+            else
+              cur_bounce
 
 paddleCollision :: Position -> Radius -> PongGame -> Bool
 paddleCollision (x, y) radius current_game = collision
@@ -177,16 +209,22 @@ paddleCollision (x, y) radius current_game = collision
 checkPaddleCollision :: PongGame -> PongGame
 -- take in a current PG and output the new PG
 -- find out where the ball is, where the paddle is, adjust ball location upon collision
-checkPaddleCollision current_game = current_game {ballVelocity = (xVol, yVol')}
+checkPaddleCollision current_game = current_game {ballVelocity = (xVol, yVol'), bounces = new_bounces}
   where
     radius = 10
     (xVol, yVol) = ballVelocity current_game
+    cur_bounce = bounces current_game
 
     yVol' = if paddleCollision (ballLocation current_game) radius current_game
-            then
-              -yVol*1.05
-            else
-              yVol
+      then
+        -yVol*1.03
+      else
+        yVol
+    new_bounces = if paddleCollision (ballLocation current_game) radius current_game
+      then
+        cur_bounce + 1
+      else
+        cur_bounce
 
 shout :: IO ()
 shout = putStrLn "hello"
