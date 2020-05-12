@@ -40,7 +40,7 @@ data PongGame = Game {
 initState :: PongGame
 initState = Game {
   ballLocation = (0,0),
-  ballVelocity = (70, 70),
+  ballVelocity = (50, 50),
   player = 0
 }
 
@@ -95,8 +95,8 @@ update timePassed = checkWallCollision . moveBall timePassed
 
 handleKeys :: Event -> PongGame -> PongGame
 handleKeys (EventKey (Char 's') _ _ _) current_game = current_game { ballLocation = (0,0) }
-handleKeys (EventKey (SpecialKey KeyLeft) _ _ _) current_game =  current_game {player = player current_game - 10}
-handleKeys (EventKey (SpecialKey KeyRight) _ _ _) current_game = current_game {player = player current_game + 10}
+handleKeys (EventKey (SpecialKey KeyLeft) _ _ _) current_game =  current_game {player = player current_game - 15}
+handleKeys (EventKey (SpecialKey KeyRight) _ _ _) current_game = current_game {player = player current_game + 15}
 handleKeys _ current_game = current_game
 
 -- ~~ collision detection ~~
@@ -107,15 +107,15 @@ type Position = (Float, Float)
 heightCollision :: Position -> Radius -> Bool
 heightCollision (_, y) radius = topCollision
   where
-    topCollision = y >= 100
+    topCollision = y + radius >= 300 - 15
 
 widthCollision :: Position -> Radius -> Bool
 widthCollision (x, _) radius = leftCollision || rightCollision
   where
-    leftCollision = x - radius >= -fromIntegral height
-    rightCollision = x + radius >= fromIntegral height 
-    -- leftCollision = x >= 5
-    -- rightCollision = x <= 5
+    -- leftCollision = x - radius >= -fromIntegral height
+    -- rightCollision = x + radius >= fromIntegral height 
+    leftCollision = x + radius >= 400 - 15
+    rightCollision = x + radius <= (-400 + 15)
 
 checkWallCollision :: PongGame -> PongGame
 -- we already know where the walls are placed ... 
@@ -125,20 +125,16 @@ checkWallCollision current_game = current_game { ballVelocity = (xVol', yVol')}
     radius = 10
     (xVol, yVol) = ballVelocity current_game
 
-    xVol' = xVol
-    yVol' = yVol
-
-    -- xVol' = if widthCollision (ballLocation current_game) radius
-    --         then
-    --           -xVol
-    --         else
-    --           10
-    -- yVol' = if heightCollision (ballLocation current_game) radius
-    --         then
-    --           -yVol
-    --         else
-    --           10
-    -- yVol' = 500
+    xVol' = if widthCollision (ballLocation current_game) radius
+            then
+              -xVol
+            else
+              xVol
+    yVol' = if heightCollision (ballLocation current_game) radius
+            then
+              (-100)
+            else
+              yVol
 
 paddleCollision :: Position -> Radius -> PongGame -> Bool
 paddleCollision (x, y) radius current_game = collision
