@@ -1,3 +1,9 @@
+-- Miller Bath & Devin Suttles
+-- Dr. Gill
+-- EECS 776 Final Projet
+-- 5/15/20
+
+
 -- TODO: Disco / rave mode
 -- TODO: Boomer mode
 -- TODO: Select ball type
