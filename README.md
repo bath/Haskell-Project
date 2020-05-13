@@ -2,16 +2,16 @@
 
 ## Install
 1. Install Haskell https://www.haskell.org/downloads/
-2. Install all required dependencies
+2. Install required dependencies
 ```sh
 cabal install gloss
 cabal install random
 ```
-3. To Compile
+3. Compile
 ```sh
 ghc main.hs
 ```
-4. To run 
+4. Run 
 ```sh
 ./main
 ```
