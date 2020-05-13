@@ -2,7 +2,7 @@
 
 ## Local Development
 1. Install Haskell https://www.haskell.org/downloads/
-2. Install all require dependencies
+2. Install all required dependencies
 ```sh
 cabal install gloss
 cabal install random
