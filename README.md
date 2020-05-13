@@ -1,6 +1,6 @@
 # Haskell-Project
 
-## Local Development
+## To use
 1. Install Haskell https://www.haskell.org/downloads/
 2. Install all required dependencies
 ```sh
@@ -15,6 +15,7 @@ ghc main.hs
 ```sh
 ./main
 ```
+5. Left and right arrow keys to control paddle.
 
 ## License 
 Miller Bath & Devin Suttles
