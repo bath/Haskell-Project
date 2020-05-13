@@ -3,6 +3,10 @@
 ## Local Development
 1. Install Haskell https://www.haskell.org/downloads/
 2. Install all require dependencies
+```sh
+cabal install gloss
+cabal install random
+```
 3. To Compile
 ```sh
 ghc main.hs
