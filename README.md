@@ -1,6 +1,6 @@
 # Haskell-Project
 
-## To use
+## Install
 1. Install Haskell https://www.haskell.org/downloads/
 2. Install all required dependencies
 ```sh
