@@ -1,6 +1,16 @@
 # Haskell-Project
 
+## Description 
+Bouncing betty is a indie develop game made by two hipsters. Players will try to see how many times they can bounce the ball without touching the ground. To adjust the platform use the right arrow key and left arrow key. The game also keeps tracks of how many times the ball bounces off the boundaries. 
+
+## Future Development
+* Extending the code base to make it compatible with the chrome web browser 
+* Set up a database to keep track of users scores
+* Different game modes to allow for custom mods
+* Difficulty levels or AI difficulty adjusting based on game play 
+
 ## Local Development
+### Installation 
 1. Install Haskell https://www.haskell.org/downloads/
 2. Install all require dependencies
 ```sh
