@@ -1,6 +1,16 @@
 # Haskell-Project
 
-## Install
+## Description 
+Bouncing Betty is a Pong like game developed by two CS undergraduates from the University of Kansas. Players attempt to maximize the number of times they can bounce a ball off any surface without touching the ground. To adjust the platform use the left and right arrow keys. The game keeps track of how many times the ball bounces off the boundaries. 
+
+## Future Development
+* Extending the code base to make it compatible with the chrome web browser 
+* Set up a database to keep track of users scores
+* Different game modes to allow for custom mods
+* Difficulty levels or AI difficulty adjusting based on game play 
+
+## Local Development
+### Installation 
 1. Install Haskell https://www.haskell.org/downloads/
 2. Install required dependencies
 ```sh
