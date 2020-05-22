@@ -12,19 +12,20 @@ Bouncing Betty is a Pong like game developed by two CS undergraduates from the U
 ## Local Development
 ### Installation 
 1. Install Haskell https://www.haskell.org/downloads/
-2. Install all require dependencies
+2. Install required dependencies
 ```sh
 cabal install gloss
 cabal install random
 ```
-3. To Compile
+3. Compile
 ```sh
 ghc main.hs
 ```
-4. To run 
+4. Run 
 ```sh
 ./main
 ```
+5. Left and right arrow keys to control paddle.
 
 ## License 
 Miller Bath & Devin Suttles
