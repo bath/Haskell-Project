@@ -9,7 +9,7 @@ Bouncing Betty is a Pong like game developed by two CS undergraduates from the U
 * Different game modes to allow for custom mods
 * Difficulty levels or AI difficulty adjusting based on game play 
 
-## Local Development
+## Local Use
 ### Installation 
 1. Install Haskell https://www.haskell.org/downloads/
 2. Install required dependencies
