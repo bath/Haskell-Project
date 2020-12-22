@@ -1,4 +1,4 @@
-# Haskell-Project
+# Bouncing Betty
 
 ## Description 
 Bouncing Betty is a Pong like game developed by two CS undergraduates from the University of Kansas. Players attempt to maximize the number of times they can bounce a ball off any surface without touching the ground. To adjust the platform use the left and right arrow keys. The game keeps track of how many times the ball bounces off the boundaries. 
